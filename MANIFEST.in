@@ -1,0 +1,2 @@
+include src/flask_fastapi/templates/redoc.html
+include src/flask_fastapi/templates/swaggerui.html
