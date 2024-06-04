@@ -37,7 +37,7 @@ decorators share some common parameters:
 
 - tags - array used in OpenAPI to categorise endpoint
 - summary - string used in OpenAPI to describe endpoint
-- response_code - used to override default response codes for each HTTP method, 
+- response_code - used to override default response codes for each HTTP method,
 - requires_auth - boolean, whether this endpoint requires authentication, defaults to true
 - private - boolean, if set to true will not include endpoint in public documentation, defaults to false
 

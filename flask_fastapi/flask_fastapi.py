@@ -25,17 +25,18 @@ __version__ = "0.0.1"
 
 logger = logging.getLogger(__name__)
 
-base_dir =  os.path.dirname(__file__)
+base_dir = os.path.dirname(__file__)
 static_folder = os.path.join(base_dir, "static")
 template_folder = os.path.join(base_dir, "templates")
+
 
 def _serialize_json(data):
     data = orjson.dumps(data).decode("utf-8")
 
-    callback = request.args.get('callback')
+    callback = request.args.get("callback")
 
     if callback:
-        data = '%s(%s)' % (callback, data)
+        data = "%s(%s)" % (callback, data)
 
     return data
 
@@ -98,7 +99,7 @@ class FlaskFastAPI(Flask):
                     },
                 }
                 for mime_type in serializers
-            }
+            },
         }
 
         content.update(extras)
@@ -106,12 +107,12 @@ class FlaskFastAPI(Flask):
         return content
 
     def __init__(
-            self,
-            __name__,
-            api_title,
-            api_version,
-            openapi_version='3.0.2',
-        ):
+        self,
+        __name__,
+        api_title,
+        api_version,
+        openapi_version="3.0.2",
+    ):
 
         super().__init__(
             __name__,
@@ -178,7 +179,10 @@ class FlaskFastAPI(Flask):
         if model is not None:
             data = model.dict()
 
-            best_serializer = request.accept_mimetypes.best_match(list(serializers.keys())) or default_serializer
+            best_serializer = (
+                request.accept_mimetypes.best_match(list(serializers.keys()))
+                or default_serializer
+            )
 
             data = serializers[best_serializer](data)
 
@@ -302,7 +306,7 @@ class FlaskFastAPI(Flask):
                         parameters.extend(method_parameters.get(method))
 
                         for field, parameter in sig.parameters.items():
-                            if field == 'body':
+                            if field == "body":
                                 # body is a keyword used for json body
                                 continue
 
@@ -325,10 +329,16 @@ class FlaskFastAPI(Flask):
                                     "int": "integer",
                                 }
 
-                                assert parameter.annotation.__name__ != '_empty', 'declare parameter %s with a type notation in function declaration %s %s' % (field, method, rule_normalised)
+                                assert parameter.annotation.__name__ != "_empty", (
+                                    "declare parameter %s with a type notation in function declaration %s %s"
+                                    % (field, method, rule_normalised)
+                                )
 
                                 param["schema"] = {
-                                    "type": type_map.get(parameter.annotation.__name__, parameter.annotation.__name__),
+                                    "type": type_map.get(
+                                        parameter.annotation.__name__,
+                                        parameter.annotation.__name__,
+                                    ),
                                 }
 
                             if parameter.default:
@@ -338,7 +348,10 @@ class FlaskFastAPI(Flask):
                                     if parameter.default.default != Ellipsis:
                                         param["default"] = parameter.default.default
 
-                                elif parameter.default not in (inspect._empty, Ellipsis):
+                                elif parameter.default not in (
+                                    inspect._empty,
+                                    Ellipsis,
+                                ):
                                     param["default"] = parameter.default
 
                             parameters.append(param)
@@ -348,9 +361,7 @@ class FlaskFastAPI(Flask):
                         if sig.return_annotation is not inspect._empty:
                             schemas.append(sig.return_annotation)
 
-                            response = self._gen_content(
-                                sig.return_annotation.__name__
-                            )
+                            response = self._gen_content(sig.return_annotation.__name__)
                             # response = {
                             #     'description': '',
                             #     'content': {
@@ -368,7 +379,10 @@ class FlaskFastAPI(Flask):
                             }
 
                         responses = default_responses.copy()
-                        response_code = metadata["response_code"] or FlaskFastAPI.default_response_codes[method]
+                        response_code = (
+                            metadata["response_code"]
+                            or FlaskFastAPI.default_response_codes[method]
+                        )
                         responses[str(response_code)] = response
 
                         method_schema = {
@@ -392,10 +406,10 @@ class FlaskFastAPI(Flask):
 
                         paths[rule_normalised][method.lower()] = method_schema
 
-        server = request.url[0:request.url.index("/", 8)]
+        server = request.url[0 : request.url.index("/", 8)]
 
         # pydantic puts these in a sub-key "definitions", so lets just pull that out
-        schemas = schema(schemas, ref_prefix='#/components/schemas/')
+        schemas = schema(schemas, ref_prefix="#/components/schemas/")
 
         openapi = {
             "openapi": self.openapi_version,
@@ -463,20 +477,28 @@ class FlaskFastAPI(Flask):
                             if key in request_args:
                                 # TODO handle coercion
                                 def default_handler(value):
-                                    return param.annotation(value[0] if isinstance(value, list) else value)
+                                    return param.annotation(
+                                        value[0] if isinstance(value, list) else value
+                                    )
 
                                 handlers = {
-                                    List[str]: lambda value: value if isinstance(value, list) else [value],
+                                    List[str]: lambda value: (
+                                        value if isinstance(value, list) else [value]
+                                    ),
                                 }
 
-                                handler = handlers.get(param.annotation, default_handler)
+                                handler = handlers.get(
+                                    param.annotation, default_handler
+                                )
 
                                 try:
                                     kwargs[key] = handler(request_args[key])
 
                                 except ValueError:
                                     # FIXME this should return a more useful error message
-                                    raise BadRequestException('Invalid value for "%s"' % key)
+                                    raise BadRequestException(
+                                        'Invalid value for "%s"' % key
+                                    )
 
                             elif param.default:
                                 # FIXME this should really consider Ellipsis
@@ -528,7 +550,10 @@ class FlaskFastAPI(Flask):
                 if process:
                     try:
                         response = func(*args, **kwargs)
-                        status_code = response_code or FlaskFastAPI.default_response_codes[request.method]
+                        status_code = (
+                            response_code
+                            or FlaskFastAPI.default_response_codes[request.method]
+                        )
 
                     except RealValidationError as e:
                         # TODO map these errors into something cleaner

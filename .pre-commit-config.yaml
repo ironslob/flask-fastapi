@@ -1,0 +1,74 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      # - id: check-yaml
+      # - id: debug-statements
+      - id: detect-aws-credentials
+      - id: detect-private-key
+      - id: fix-byte-order-marker
+      # - id: fix-encoding-pragma
+      - id: mixed-line-ending
+      # - id: name-tests-test
+      - id: trailing-whitespace
+
+  # TODO ruff should be able to replace flake8 and isort
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    # Ruff version.
+    rev: 'v0.0.275'
+    hooks:
+      - id: ruff
+        files: ^(flask_fastapi|tests)
+        args: [--fix, --exit-non-zero-on-fix]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        files: ^(flask_fastapi|tests)
+        args:
+          - --extend-ignore
+          - ANN401,ANN101,ANN102,TAK10,E128,E172,E203,E241,E711,E712,E731,W503
+          - --max-line-length=120
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        files: ^(flask_fastapi|tests)
+
+          # - repo: https://github.com/codingjoe/relint
+          #   rev: 1.4.0
+          #   hooks:
+          #     - id: relint
+          #       # args: [-W]
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        files: ^(flask_fastapi|tests)
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.4.1'
+    hooks:
+      - id: mypy
+        # TODO move from pre-commit config into pyproject.toml
+        args:
+          - --install-types
+          - --non-interactive
+          - --show-error-codes
+          - --ignore-missing-imports
+          - --exclude
+          - ./migrations/versions/
+          - --disable-error-code
+          - var-annotated
+          - --disable-error-code
+          - truthy-function
+        files: flask_fastapi/
